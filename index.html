@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TikTok Arcade Mobile - Interactive single-page vertical arcade games coded in pure HTML5, CSS3, and ES6 Javascript. Project for Programming Languages course.">
+    <meta name="author" content="Reyhan Imece">
+    <title>TikTok Arcade Mobile - Mini Games Collection</title>
+    
+    <!-- Google Fonts Integration -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Style Sheet Link -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Main Container Mimicking a Mobile Device Frame -->
+    <main id="appContainer" class="phone-frame">
+        
+        <!-- ================= LOBBY LOBBY VIEW ================= -->
+        <section id="lobbyView" class="view-panel">
+            <header class="app-header">
+                <div class="tiktok-logo-glow"></div>
+                <h1 class="logo-text">TikTok <span class="accent-span">Arcade</span></h1>
+                <p class="subtitle">TAP TO PLAY VIRAL CHALLENGES</p>
+            </header>
+
+            <!-- User Profile and Username Config Card -->
+            <article class="user-settings-card">
+                <div class="user-avatar-placeholder">👾</div>
+                <div class="user-meta">
+                    <span class="user-handle" id="currentUserDisplay">@TikToker</span>
+                    <div class="name-edit-form">
+                        <input type="text" id="usernameInput" placeholder="Enter username..." maxlength="12" aria-label="Username input">
+                        <button id="btnSubmitName" class="btn-save" type="button">SAVE</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Grid of Mini Games Selection -->
+            <nav class="games-grid" aria-label="Game navigation list">
+                <button id="cardBalance" class="game-card card-pink" type="button">
+                    <div class="card-glow"></div>
+                    <div class="card-icon">🥞</div>
+                    <div class="card-details">
+                        <h2>Balance Stack</h2>
+                        <p>Gravity Physics Challenge</p>
+                    </div>
+                    <span class="card-action">PLAY</span>
+                </button>
+
+                <button id="cardFall" class="game-card card-cyan" type="button">
+                    <div class="card-glow"></div>
+                    <div class="card-icon">⚽</div>
+                    <div class="card-details">
+                        <h2>Stop the Ball</h2>
+                        <p>High-Speed Timing Test</p>
+                    </div>
+                    <span class="card-action">PLAY</span>
+                </button>
+
+                <button id="cardSort" class="game-card card-yellow" type="button">
+                    <div class="card-glow"></div>
+                    <div class="card-icon">🧪</div>
+                    <div class="card-details">
+                        <h2>Water Sort</h2>
+                        <p>Logic Stack Sorting Puzzle</p>
+                    </div>
+                    <span class="card-action">PLAY</span>
+                </button>
+            </nav>
+
+            <!-- Lobby Navigation Actions -->
+            <footer class="lobby-footer">
+                <button id="btnShowScores" class="btn-primary" type="button">🏆 LEADERBOARD</button>
+                <div class="academic-note">PL Project • Deadline: 08.06.2026</div>
+            </footer>
+        </section>
+
+        <!-- ================= GAMEPLAY CANVAS VIEW ================= -->
+        <section id="gameView" class="view-panel hidden">
+            <header class="game-header">
+                <button id="btnBackFromGame" class="btn-back" type="button" aria-label="Go back to lobby">◀ LOBBY</button>
+                <div class="live-tag">LIVE</div>
+            </header>
+
+            <div class="canvas-container">
+                <!-- HTML5 Canvas governed by GameEngine -->
+                <canvas id="gameCanvas"></canvas>
+            </div>
+        </section>
+
+        <!-- ================= LEADERBOARD SCRIBES VIEW ================= -->
+        <section id="leaderboardView" class="view-panel hidden">
+            <header class="leaderboard-header">
+                <h2>🏆 HALL OF FAME</h2>
+                <p>Top Sorted LinkedList Leaderboard</p>
+            </header>
+
+            <div class="leaderboard-list-wrapper">
+                <ol id="leaderboardContainer" class="leaderboard-ul">
+                    <!-- Loaded dynamically via App.js from LinkedList toArray -->
+                </ol>
+            </div>
+
+            <footer class="leaderboard-footer">
+                <button id="btnBackFromScores" class="btn-primary" type="button">CLOSE</button>
+            </footer>
+        </section>
+
+        <!-- ================= GAME OVER POPUP MODAL ================= -->
+        <div id="gameOverModal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+            <article class="modal-content">
+                <div class="gameover-glow"></div>
+                <h3 class="modal-title">CHALLENGE FAILED</h3>
+                <h4 id="modalGameTitle" class="modal-sub">TikTok Balance</h4>
+                
+                <div class="score-display-box">
+                    <span class="score-label">FINAL SCORE</span>
+                    <span id="finalScoreDisplay" class="score-number">12</span>
+                </div>
+
+                <div class="modal-actions">
+                    <button id="btnModalRestart" class="btn-restart" type="button">REPLAY</button>
+                    <button id="btnModalLobby" class="btn-lobby-exit" type="button">LOBBY</button>
+                </div>
+            </article>
+        </div>
+
+    </main>
+
+    <!-- Main Module Application Loader -->
+    <script type="module" src="App.js"></script>
+</body>
+</html>

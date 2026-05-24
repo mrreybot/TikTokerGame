@@ -1,0 +1,690 @@
+/* ==========================================
+   TikTok Arcade Mobile - Core Stylesheet
+   Theme: TikTok Dark Neomorphic/Glassmorphic
+   ========================================== */
+
+/* Design Tokens & CSS Variables */
+:root {
+    --bg-dark: #09090b;
+    --bg-phone: #121218;
+    --bg-card: rgba(22, 24, 35, 0.7);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-white: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.6);
+    --primary-pink: #fe2c55;
+    --primary-cyan: #25f4ee;
+    --primary-yellow: #ffff00;
+    --primary-purple: #9c27b0;
+    --glow-blur: 15px;
+    --font-stack: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Global Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg-dark);
+    font-family: var(--font-stack);
+    color: var(--text-white);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Helper hidden class */
+.hidden {
+    display: none !important;
+}
+
+/* ==========================================
+   Mobile-First Device Simulator Frame
+   ========================================== */
+.phone-frame {
+    width: 100vw;
+    height: 100vh;
+    max-width: 400px;
+    max-height: 800px;
+    background-color: var(--bg-phone);
+    border: 4px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                0 0 40px rgba(37, 244, 238, 0.15),
+                0 0 80px rgba(254, 44, 85, 0.1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Desktop Rounded Frame look */
+@media (min-width: 450px) {
+    .phone-frame {
+        border-radius: 36px;
+        border: 8px solid rgba(255, 255, 255, 0.15);
+        outline: 2px solid rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* ==========================================
+   Views Setup
+   ========================================== */
+.view-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    overflow-y: auto;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+}
+
+/* Hide scrollbar for clean app experience */
+.view-panel::-webkit-scrollbar {
+    display: none;
+}
+
+/* ==========================================
+   Lobby View Components
+   ========================================== */
+
+/* Header Logo with TikTok Cyan/Pink double shadow shadow */
+.app-header {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.logo-text {
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: -2.5px -2.5px 0px var(--primary-pink),
+                  2.5px  2.5px 0px var(--primary-cyan);
+    animation: pulseGlow 4s infinite alternate;
+}
+
+.logo-text .accent-span {
+    color: #ffffff;
+}
+
+.subtitle {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-top: 8px;
+}
+
+/* User Settings Card */
+.user-settings-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+}
+
+.user-avatar-placeholder {
+    font-size: 28px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary-pink), var(--primary-cyan));
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(254, 44, 85, 0.4);
+}
+
+.user-meta {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.user-handle {
+    font-weight: 800;
+    font-size: 16px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.name-edit-form {
+    display: flex;
+    gap: 8px;
+}
+
+.name-edit-form input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: #fff;
+    font-size: 12px;
+    outline: none;
+    flex-grow: 1;
+    font-family: var(--font-stack);
+    transition: border-color 0.2s;
+}
+
+.name-edit-form input:focus {
+    border-color: var(--primary-cyan);
+}
+
+.btn-save {
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: var(--font-stack);
+    transition: all 0.2s;
+}
+
+.btn-save:hover {
+    background: var(--primary-cyan);
+    box-shadow: 0 0 10px var(--primary-cyan);
+}
+
+/* Game Launch Cards Grid */
+.games-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 25px;
+}
+
+.game-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-align: left;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                border-color 0.2s;
+    font-family: var(--font-stack);
+    color: inherit;
+}
+
+.game-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.game-card:active {
+    transform: scale(0.98);
+}
+
+.card-glow {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.15;
+    pointer-events: none;
+    left: -20px;
+    top: -20px;
+}
+
+.card-pink .card-glow { background: var(--primary-pink); }
+.card-cyan .card-glow { background: var(--primary-cyan); }
+.card-yellow .card-glow { background: var(--primary-yellow); }
+
+.card-icon {
+    font-size: 32px;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.02);
+}
+
+.card-details {
+    flex-grow: 1;
+}
+
+.card-details h2 {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 2px;
+}
+
+.card-details p {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.card-action {
+    font-size: 11px;
+    font-weight: 900;
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+}
+
+.card-pink:hover .card-action {
+    background: var(--primary-pink);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(254, 44, 85, 0.4);
+    border-color: var(--primary-pink);
+}
+
+.card-cyan:hover .card-action {
+    background: var(--primary-cyan);
+    color: #000;
+    box-shadow: 0 0 15px rgba(37, 244, 238, 0.4);
+    border-color: var(--primary-cyan);
+}
+
+.card-yellow:hover .card-action {
+    background: var(--primary-yellow);
+    color: #000;
+    box-shadow: 0 0 15px rgba(255, 235, 59, 0.4);
+    border-color: var(--primary-yellow);
+}
+
+/* Footer Section */
+.lobby-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-top: auto;
+    padding-bottom: 10px;
+}
+
+.btn-primary {
+    width: 100%;
+    background: linear-gradient(90deg, var(--primary-pink), var(--primary-cyan));
+    border: none;
+    border-radius: 16px;
+    padding: 15px;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    font-family: var(--font-stack);
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(37, 244, 238, 0.2), 0 0 15px rgba(254, 44, 85, 0.3);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.academic-note {
+    font-size: 9px;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ==========================================
+   Gameplay Container View
+   ========================================== */
+#gameView {
+    padding: 0;
+    background: #000;
+}
+
+.game-header {
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 50;
+    background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+}
+
+.btn-back {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: var(--font-stack);
+    transition: all 0.2s;
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #fff;
+}
+
+.live-tag {
+    background: var(--primary-pink);
+    font-size: 10px;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    box-shadow: 0 0 10px rgba(254, 44, 85, 0.6);
+    animation: flashPulse 1s infinite alternate;
+}
+
+.canvas-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameCanvas {
+    background-color: #0d0d12;
+    display: block;
+}
+
+/* ==========================================
+   Leaderboard View Components
+   ========================================== */
+.leaderboard-header {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 24px;
+}
+
+.leaderboard-header h2 {
+    font-size: 28px;
+    font-weight: 900;
+    text-shadow: 0 0 15px rgba(255, 235, 59, 0.3);
+}
+
+.leaderboard-header p {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.leaderboard-list-wrapper {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+}
+
+.leaderboard-ul {
+    list-style: none;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    transition: background-color 0.2s;
+}
+
+.leaderboard-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.score-rank-name {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.rank-badge {
+    font-size: 16px;
+    font-weight: 900;
+    width: 28px;
+    text-align: center;
+    color: var(--primary-cyan);
+}
+
+.player-name {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.score-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.score-value {
+    color: var(--primary-pink);
+    font-weight: 800;
+    font-size: 15px;
+    text-shadow: 0 0 8px rgba(254, 44, 85, 0.2);
+}
+
+.score-date {
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+.empty-list {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.leaderboard-footer {
+    margin-top: auto;
+    padding-bottom: 10px;
+}
+
+/* ==========================================
+   Game Over Modal Overlay
+   ========================================== */
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    background: rgba(22, 24, 35, 0.95);
+    border: 2px solid var(--primary-pink);
+    border-radius: 28px;
+    padding: 24px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(254, 44, 85, 0.25),
+                inset 0 0 20px rgba(254, 44, 85, 0.1);
+    animation: modalSlideIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1.1) forwards;
+}
+
+.gameover-glow {
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 150px;
+    background: var(--primary-pink);
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.modal-title {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--primary-pink);
+    text-shadow: 0 0 10px rgba(254, 44, 85, 0.5);
+    letter-spacing: -0.5px;
+}
+
+.modal-sub {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 4px;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score-display-box {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.score-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+}
+
+.score-number {
+    font-size: 42px;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-restart {
+    background: var(--primary-pink);
+    border: none;
+    border-radius: 16px;
+    padding: 15px;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: var(--font-stack);
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(254, 44, 85, 0.4);
+}
+
+.btn-restart:hover {
+    background: #ff476f;
+    box-shadow: 0 6px 20px rgba(254, 44, 85, 0.6);
+}
+
+.btn-lobby-exit {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 15px;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: var(--font-stack);
+    transition: all 0.2s;
+}
+
+.btn-lobby-exit:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================
+   Animations Code
+   ========================================== */
+@keyframes pulseGlow {
+    from {
+        text-shadow: -2.5px -2.5px 0px var(--primary-pink),
+                      2.5px  2.5px 0px var(--primary-cyan),
+                      0 0 10px rgba(254, 44, 85, 0.1);
+    }
+    to {
+        text-shadow: -2.5px -2.5px 0px var(--primary-pink),
+                      2.5px  2.5px 0px var(--primary-cyan),
+                      0 0 25px rgba(37, 244, 238, 0.4),
+                      0 0 45px rgba(254, 44, 85, 0.3);
+    }
+}
+
+@keyframes flashPulse {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
