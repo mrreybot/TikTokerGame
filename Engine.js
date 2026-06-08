@@ -95,6 +95,17 @@ export class GameEngine {
     }
 
     /**
+     * Programmatically triggers the swipe vertical scroll transition to the next game.
+     */
+    triggerSwipeNext() {
+        if (this.#isSlidingTransition || this.#isSwiping) return;
+        this.#isSlidingTransition = true;
+        this.#slideDirection = 1; // 1 = slide to next
+        this.#startSwipeYOffset = 0; // slide starts from center
+        this.#slideTimeElapsed = 0;
+    }
+
+    /**
      * Load and run the game class described by the active list node.
      */
     loadGameFromActiveNode() {

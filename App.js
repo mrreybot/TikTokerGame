@@ -11,19 +11,9 @@
  * - PL Elective Concept 1: Event-driven design (Orchestrating DOM view toggles).
  */
 
-import { GameEngine } from './Engine.js';
-import { LinkedList, CircularDoublyLinkedList } from './DataStructures.js';
-import { BalanceGame } from './games/BalanceGame.js';
-import { FallGame } from './games/FallGame.js';
-import { SortGame } from './games/SortGame.js';
-import {
-    SudokuGame, MemoryGame, ReactionGame, MathSpeedGame, TapSpeedGame,
-    ColorFloodGame, PatternCopyGame, CatchFruitGame, PerfectSliceGame, CountDotsGame,
-    AvoidBombsGame, TargetShooterGame, ColorMatchGame, ConnectPipesGame, JumpObstaclesGame,
-    TicTacToeGame, WordScrambleGame, KnifeThrowGame, WhackAMoleGame, RhythmTapGame,
-    GridFinderGame, BlockSliderGame, HighLowGame, BallBricksGame, SequenceOrderGame,
-    MazeEscapeGame, FlappyBallGame
-} from './games/NewMiniGames.js';
+import { firebaseConfig, isFirebaseConfigured } from './FirebaseConfig.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
 class App {
     // Encapsulated states (PL Concept 5)
@@ -33,11 +23,29 @@ class App {
     #currentUsername = "TikToker";
     #activeGameName = "";
     #storageKey = "tiktok_arcade_leaderboard_v1";
+    #db = null;
+    #isDbOnline = false;
 
     constructor() {
         // Initialize dynamic sorted LinkedList for leaderboard
         this.#leaderboard = new LinkedList(10);
         
+        // Initialize Firebase database connection (PL Concept 10: Exception Handling)
+        if (isFirebaseConfigured()) {
+            try {
+                const app = initializeApp(firebaseConfig);
+                this.#db = getFirestore(app);
+                this.#isDbOnline = true;
+                console.log("Firebase Database Connection Successful!");
+            } catch (e) {
+                console.warn("Firebase configuration error. Falling back to local offline mode.", e);
+                this.#isDbOnline = false;
+            }
+        } else {
+            console.log("Firebase not configured. Running in Local Offline Mode.");
+            this.#isDbOnline = false;
+        }
+
         // Initialize Circular Doubly Linked List for game sequencing
         this.#initializeGameList();
 
@@ -276,78 +284,106 @@ class App {
     /**
      * Handle Game Over modal and list updates.
      */
+    /**
+     * Handle Game Over overlay triggers and auto-scrolling loops.
+     */
     #handleGameOver(finalScore) {
         this.#engine.stop();
 
         const doc = document;
-        const modal = doc.getElementById("gameOverModal");
-        const scoreDisplay = doc.getElementById("finalScoreDisplay");
-        const gameTitleDisplay = doc.getElementById("modalGameTitle");
-        const btnRestart = doc.getElementById("btnModalRestart");
-        const btnLobby = doc.getElementById("btnModalLobby");
+        const tempOverlay = doc.getElementById("gameOverOverlay");
+        const tempScore = doc.getElementById("tempScoreDisplay");
+        const tempTitle = doc.getElementById("tempGameTitle");
 
-        // Display results
-        gameTitleDisplay.innerText = this.#activeGameName;
-        scoreDisplay.innerText = finalScore;
+        // Asynchronously save score to local & database collections
+        this.#saveScore(this.#currentUsername, finalScore);
 
-        // Insert new score node into LinkedList (PL Concept 6)
-        this.#leaderboard.insertSorted(this.#currentUsername, finalScore);
-        this.#saveLeaderboardData();
-        this.#updateLeaderboardUI();
+        // Display results inside temporary hud
+        tempTitle.innerText = this.#activeGameName;
+        tempScore.innerText = finalScore;
 
-        // Show modal overlay
-        modal.classList.remove("hidden");
+        // Show temp overlay
+        tempOverlay.classList.remove("hidden");
 
-        // Button events with closure binds
-        const cleanupModalEvents = () => {
-            modal.classList.add("hidden");
-            // Re-create buttons to clear listeners and avoid memory leaking
-            const newBtnRestart = btnRestart.cloneNode(true);
-            const newBtnLobby = btnLobby.cloneNode(true);
-            btnRestart.parentNode.replaceChild(newBtnRestart, btnRestart);
-            btnLobby.parentNode.replaceChild(newBtnLobby, btnLobby);
-            return { restart: newBtnRestart, lobby: newBtnLobby };
-        };
-
-        const restartCallback = () => {
-            cleanupModalEvents();
-            // Re-instantiate current game directly using its stored activeNode configuration
-            this.#engine.loadGameFromActiveNode();
-        };
-
-        const lobbyCallback = () => {
-            cleanupModalEvents();
-            doc.getElementById("gameView").classList.add("hidden");
-            doc.getElementById("lobbyView").classList.remove("hidden");
-        };
-
-        btnRestart.onclick = restartCallback;
-        btnLobby.onclick = lobbyCallback;
+        // Auto-swipe vertical scroll to the next game in 1.5 seconds
+        setTimeout(() => {
+            tempOverlay.classList.add("hidden");
+            this.#engine.triggerSwipeNext();
+        }, 1500);
     }
 
     /**
-     * Restore leaderboards from localStorage.
+     * Save score locally and sync to Firebase Firestore database.
+     * Showcase: Real-time Cloud saving with local fallback.
+     */
+    async #saveScore(username, score) {
+        // 1. Write locally first to ensure data protection
+        this.#leaderboard.insertSorted(username, score);
+        this.#saveLeaderboardData();
+
+        // 2. Upload to database asynchronously if online
+        if (this.#isDbOnline) {
+            try {
+                await addDoc(collection(this.#db, "leaderboard"), {
+                    name: username,
+                    score: score,
+                    timestamp: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
+                    epoch: Date.now()
+                });
+                console.log("Score synced to Cloud Database!");
+                // Reload global leaderboard
+                await this.#loadLeaderboardData();
+            } catch (e) {
+                console.warn("Cloud save failed. Offline changes queued locally.", e);
+            }
+        } else {
+            this.#updateLeaderboardUI();
+        }
+    }
+
+    /**
+     * Restore leaderboards from Cloud Database or Local Storage.
      * Showcase: Serialization and Deserialization.
      */
-    #loadLeaderboardData() {
+    async #loadLeaderboardData() {
+        if (this.#isDbOnline) {
+            try {
+                // Fetch top 10 scores from Firestore ordered by score descending
+                const q = query(collection(this.#db, "leaderboard"), orderBy("score", "desc"), limit(10));
+                const querySnapshot = await getDocs(q);
+                
+                this.#leaderboard.clear();
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    this.#leaderboard.insertSorted(data.name, data.score);
+                });
+                
+                this.#updateLeaderboardUI();
+                return; // Fetch complete
+            } catch (e) {
+                console.warn("Failed to retrieve leaderboard from Firestore. Falling back to Local Storage.", e);
+            }
+        }
+
+        // Local Storage fallback
         try {
             const dataStr = localStorage.getItem(this.#storageKey);
             if (dataStr) {
                 const rawArr = JSON.parse(dataStr);
-                // Run-time validation check (PL Concept 7)
                 if (Array.isArray(rawArr)) {
-                    // Loop to reconstruct nodes inside the heap (PL Concept 3 Heap)
+                    this.#leaderboard.clear();
                     rawArr.forEach(item => {
                         this.#leaderboard.insertSorted(item.name, item.score);
                     });
                 }
             } else {
-                // Pre-populate with default scores for aesthetics if empty
+                // Populate seed data
                 this.#leaderboard.insertSorted("Charli_D", 85);
                 this.#leaderboard.insertSorted("Khaby_L", 62);
                 this.#leaderboard.insertSorted("Bella_P", 35);
                 this.#saveLeaderboardData();
             }
+            this.#updateLeaderboardUI();
         } catch (e) {
             console.error("Failed to load leaderboard data.", e);
         }
@@ -358,7 +394,6 @@ class App {
      */
     #saveLeaderboardData() {
         try {
-            // Convert list node chain to array and stringify
             const listArr = this.#leaderboard.toArray();
             localStorage.setItem(this.#storageKey, JSON.stringify(listArr));
         } catch (e) {
@@ -367,12 +402,24 @@ class App {
     }
 
     /**
-     * Re-renders the leaderboard list.
+     * Re-renders the leaderboard list with database connectivity status badges.
      * Showcase: Traversing dynamic Linked List and building HTML nodes.
      */
     #updateLeaderboardUI() {
         const listContainer = document.getElementById("leaderboardContainer");
-        listContainer.innerHTML = ""; // Clear existing
+        listContainer.innerHTML = "";
+
+        // Update database connection status indicator badge
+        const dbBadge = document.getElementById("dbStatusBadge");
+        if (dbBadge) {
+            if (this.#isDbOnline) {
+                dbBadge.innerText = "GLOBAL LIVE";
+                dbBadge.className = "db-status-badge online";
+            } else {
+                dbBadge.innerText = "LOCAL OFFLINE";
+                dbBadge.className = "db-status-badge offline";
+            }
+        }
 
         const scores = this.#leaderboard.toArray();
 
@@ -385,7 +432,6 @@ class App {
             const li = document.createElement("li");
             li.className = "leaderboard-item";
             
-            // Add custom medals for top 3
             let badge = `#${index + 1}`;
             if (index === 0) badge = "🥇";
             else if (index === 1) badge = "🥈";

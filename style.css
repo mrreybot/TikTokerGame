@@ -800,3 +800,118 @@ body {
     50% { transform: translateY(4px); }
 }
 
+/* Database Connection Status Badges */
+.db-status-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.db-status-badge.online {
+    color: var(--primary-cyan);
+    background: rgba(37, 244, 238, 0.1);
+    border: 1px solid rgba(37, 244, 238, 0.3);
+    box-shadow: 0 0 8px rgba(37, 244, 238, 0.2);
+}
+
+.db-status-badge.offline {
+    color: var(--primary-pink);
+    background: rgba(254, 44, 85, 0.1);
+    border: 1px solid rgba(254, 44, 85, 0.3);
+    box-shadow: 0 0 8px rgba(254, 44, 85, 0.2);
+}
+
+/* Glassmorphic Game Over Overlay */
+.game-over-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(9, 9, 12, 0.88);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    animation: overlayFadeIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.overlay-glow {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: var(--primary-pink);
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.overlay-failed {
+    font-size: 30px;
+    font-weight: 900;
+    color: var(--primary-pink);
+    text-shadow: 0 0 15px rgba(254, 44, 85, 0.6);
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+}
+
+.overlay-game-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 35px;
+    opacity: 0.8;
+}
+
+.overlay-score-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 20px 35px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.overlay-score-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+}
+
+.overlay-score-val {
+    font-size: 48px;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+.overlay-next-hint {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--primary-cyan);
+    letter-spacing: 2px;
+    animation: flashPulse 1.0s infinite alternate;
+}
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+

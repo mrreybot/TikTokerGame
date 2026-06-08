@@ -73,6 +73,18 @@
                 <span class="swipe-arrow animate-bounce-down">▼</span>
             </div>
 
+            <!-- Temporary Game Over overlay for 1.5s auto swipe transition -->
+            <div id="gameOverOverlay" class="game-over-overlay hidden">
+                <div class="overlay-glow"></div>
+                <span class="overlay-failed">CHALLENGE FAILED</span>
+                <span id="tempGameTitle" class="overlay-game-title">TikTok Balance</span>
+                <div class="overlay-score-box">
+                    <span class="overlay-score-label">FINAL SCORE</span>
+                    <span id="tempScoreDisplay" class="overlay-score-val">0</span>
+                </div>
+                <span class="overlay-next-hint">NEXT GAME IN 1.5s...</span>
+            </div>
+
             <div class="canvas-container">
                 <!-- HTML5 Canvas governed by GameEngine -->
                 <canvas id="gameCanvas"></canvas>
@@ -83,6 +95,7 @@
         <section id="leaderboardView" class="view-panel hidden">
             <header class="leaderboard-header">
                 <h2>🏆 HALL OF FAME</h2>
+                <div id="dbStatusBadge" class="db-status-badge offline">LOCAL OFFLINE</div>
                 <p>Top Sorted LinkedList Leaderboard</p>
             </header>
 
@@ -97,24 +110,7 @@
             </footer>
         </section>
 
-        <!-- ================= GAME OVER POPUP MODAL ================= -->
-        <div id="gameOverModal" class="modal-overlay hidden" aria-modal="true" role="dialog">
-            <article class="modal-content">
-                <div class="gameover-glow"></div>
-                <h3 class="modal-title">CHALLENGE FAILED</h3>
-                <h4 id="modalGameTitle" class="modal-sub">TikTok Balance</h4>
-                
-                <div class="score-display-box">
-                    <span class="score-label">FINAL SCORE</span>
-                    <span id="finalScoreDisplay" class="score-number">12</span>
-                </div>
-
-                <div class="modal-actions">
-                    <button id="btnModalRestart" class="btn-restart" type="button">REPLAY</button>
-                    <button id="btnModalLobby" class="btn-lobby-exit" type="button">LOBBY</button>
-                </div>
-            </article>
-        </div>
+        <!-- Old Game Over Modal removed, replaced by temporary auto-scroller overlay -->
 
     </main>
 
