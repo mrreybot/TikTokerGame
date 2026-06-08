@@ -16,7 +16,9 @@ import { Stack } from '../DataStructures.js';
 
 export class FallGame extends GameBase {
     #livesStack = null; // Custom Stack data structure storing user life nodes
-    
+    #gameState = 'START'; // 'START', 'COUNTDOWN', 'PLAYING'
+    #countdownTimer = 3.0;
+
     // Physics Ball elements
     #ball = {
         x: 200,
@@ -63,6 +65,8 @@ export class FallGame extends GameBase {
         this.#baseGravityBoost = 0;
         this.#shakeTimer = 0;
         this.#rippleRings = [];
+        this.#gameState = 'START';
+        this.#countdownTimer = 3.0;
 
         // Reset the ball physics
         this.#resetBall();
@@ -82,7 +86,7 @@ export class FallGame extends GameBase {
     #resetBall() {
         this.#ball.x = 200;
         this.#ball.y = 20;
-        this.#ball.vy = 50; // Starting downward velocity
+        this.#ball.vy = 20; // Starting downward velocity (much slower)
     }
 
     /**
@@ -136,22 +140,30 @@ export class FallGame extends GameBase {
         // The gate's vertical center oscillates between 440px and 620px
         this.#gate.y = 520 + Math.sin(this.#timeElapsed * 2.5) * 90;
 
-        // Integrate ball physics using Custom Gravity physics accumulator
-        const physicsState = {
-            y: this.#ball.y,
-            velocity: this.#ball.vy,
-            acceleration: 400 + this.#baseGravityBoost // Gravity increases as score rises
-        };
+        if (this.#gameState === 'COUNTDOWN') {
+            this.#countdownTimer -= dt;
+            if (this.#countdownTimer <= 0) {
+                this.#gameState = 'PLAYING';
+                this.#resetBall();
+            }
+        } else if (this.#gameState === 'PLAYING') {
+            // Integrate ball physics using Custom Gravity physics accumulator
+            const physicsState = {
+                y: this.#ball.y,
+                velocity: this.#ball.vy,
+                acceleration: 150 + this.#baseGravityBoost // Gravity starts much lower and increases with score
+            };
 
-        // Manual kinematics updates inside Engine
-        this.engine.applyGravityPhysics(physicsState, dt);
+            // Manual kinematics updates inside Engine
+            this.engine.applyGravityPhysics(physicsState, dt);
 
-        this.#ball.y = physicsState.y;
-        this.#ball.vy = physicsState.velocity;
+            this.#ball.y = physicsState.y;
+            this.#ball.vy = physicsState.velocity;
 
-        // Boundary check: If ball falls below viewport without click, pop a life
-        if (this.#ball.y > this.#maxFallY) {
-            this.#deductLife();
+            // Boundary check: If ball falls below viewport without click, pop a life
+            if (this.#ball.y > this.#maxFallY) {
+                this.#deductLife();
+            }
         }
 
         // Update ripple rings animations
@@ -252,17 +264,19 @@ export class FallGame extends GameBase {
         ctx.lineTo(200, 800);
         ctx.stroke();
 
-        // Draw active falling ball
-        this.drawNeonCircle(
-            ctx,
-            this.#ball.x,
-            this.#ball.y,
-            this.#ball.radius,
-            this.#ball.color,
-            '#ffffff',
-            this.#ball.glowColor,
-            18
-        );
+        // Draw active falling ball if playing
+        if (this.#gameState === 'PLAYING') {
+            this.drawNeonCircle(
+                ctx,
+                this.#ball.x,
+                this.#ball.y,
+                this.#ball.radius,
+                this.#ball.color,
+                '#ffffff',
+                this.#ball.glowColor,
+                18
+            );
+        }
 
         // Draw ripple particles
         for (const ripple of this.#rippleRings) {
@@ -292,6 +306,27 @@ export class FallGame extends GameBase {
             this.drawNeonCircle(ctx, startX - (i * spacingX), 45, 7, '#fe2c55', '#ffffff', '#fe2c55', 8);
         }
 
+        // Draw screens overlays for START and COUNTDOWN
+        if (this.#gameState === 'START') {
+            // Semi-transparent overlay
+            ctx.fillStyle = 'rgba(9, 9, 12, 0.85)';
+            ctx.fillRect(0, 0, 400, 800);
+
+            this.drawNeonText(ctx, "CHRONO DROP", 200, 320, '900 36px Outfit, sans-serif', '#25f4ee', 'center', '#25f4ee', 12);
+            this.drawNeonText(ctx, "TAP THE BALL WHEN IT IS INSIDE THE TARGET ZONE", 200, 380, '600 13px Outfit, sans-serif', 'rgba(255, 255, 255, 0.8)', 'center', null);
+            this.drawNeonText(ctx, "GRAVITY SPEEDS UP OVER TIME!", 200, 410, '600 12px Outfit, sans-serif', '#fe2c55', 'center', '#fe2c55', 4);
+
+            this.drawNeonRect(ctx, 80, 500, 240, 50, 'rgba(37, 244, 238, 0.1)', '#25f4ee', '#25f4ee', 10);
+            this.drawNeonText(ctx, "TAP TO START", 200, 532, '900 16px Outfit, sans-serif', '#ffffff', 'center', null);
+        } else if (this.#gameState === 'COUNTDOWN') {
+            ctx.fillStyle = 'rgba(9, 9, 12, 0.5)';
+            ctx.fillRect(0, 0, 400, 800);
+
+            const count = Math.ceil(this.#countdownTimer);
+            const countText = count > 0 ? count.toString() : "GO!";
+            this.drawNeonText(ctx, countText, 200, 400, '900 80px Outfit, sans-serif', '#ffff00', 'center', '#ffff00', 20);
+        }
+
         // Showcase Debug Info: Shows stack items count (Lives indicator validation)
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         ctx.font = '10px Courier New';
@@ -303,7 +338,12 @@ export class FallGame extends GameBase {
      * Showcase: Polymorphic interface handleInput.
      */
     handleInput(x, y, event) {
-        // Player taps to catch the ball inside shifting gate
-        this.#checkTap();
+        if (this.#gameState === 'START') {
+            this.#gameState = 'COUNTDOWN';
+            this.#countdownTimer = 3.0;
+        } else if (this.#gameState === 'PLAYING') {
+            // Player taps to catch the ball inside shifting gate
+            this.#checkTap();
+        }
     }
 }

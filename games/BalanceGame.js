@@ -359,9 +359,7 @@ export class BalanceGame extends GameBase {
      * Showcase: Polymorphic interface handleInput.
      */
     handleInput(x, y, event) {
-        if (this.#state === 'SLIDING') {
-            // Trigger drop governed by gravity physics accumulator
-            this.#state = 'DROPPING';
-        }
+        if (this.isGameOver || this.#state !== 'SLIDING') return;
+        this.#state = 'DROPPING';
     }
 }

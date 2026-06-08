@@ -75,14 +75,15 @@
 
             <!-- Temporary Game Over overlay for 1.5s auto swipe transition -->
             <div id="gameOverOverlay" class="game-over-overlay hidden">
-                <div class="overlay-glow"></div>
-                <span class="overlay-failed">CHALLENGE FAILED</span>
+                <div class="overlay-glow" id="overlayGlow"></div>
+                <span class="overlay-failed" id="overlayStatus">CHALLENGE FAILED</span>
                 <span id="tempGameTitle" class="overlay-game-title">TikTok Balance</span>
                 <div class="overlay-score-box">
-                    <span class="overlay-score-label">FINAL SCORE</span>
+                    <span class="overlay-score-label" id="overlayScoreLabel">FINAL SCORE</span>
                     <span id="tempScoreDisplay" class="overlay-score-val">0</span>
                 </div>
-                <span class="overlay-next-hint">NEXT GAME IN 1.5s...</span>
+                <span class="overlay-next-hint" id="overlayNextHint">NEXT GAME IN 1.5s...</span>
+                <button id="btnOverlayLobby" class="btn-primary hidden" type="button" style="margin-top: 20px; width: 200px; z-index: 110;">EXIT TO LOBBY</button>
             </div>
 
             <div class="canvas-container">

@@ -356,6 +356,7 @@ export class SortGame extends GameBase {
      * Showcase: Polymorphic interface handleInput.
      */
     handleInput(x, y, event) {
+        if (this.isGameOver) return;
         // Detect which tube the coordinates map into
         let clickedTubeIndex = null;
 

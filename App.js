@@ -38,6 +38,8 @@ class App {
     #storageKey = "tiktok_arcade_leaderboard_v1";
     #db = null;
     #isDbOnline = false;
+    #arcadeTotalScore = 0;
+    #gamesPlayedCount = 0;
 
     constructor() {
         // Initialize dynamic sorted LinkedList for leaderboard
@@ -90,7 +92,7 @@ class App {
             { name: "Water Sort", Class: SortGame, icon: "🧪", color: "#ffff00", desc: "Logic Sorting Puzzle" },
             { name: "4x4 Sudoku", Class: SudokuGame, icon: "🧩", color: "#fe2c55", desc: "Mini Grid Numbers Puzzle" },
             { name: "Memory Match", Class: MemoryGame, icon: "🃏", color: "#25f4ee", desc: "Brain Card Pairs Match" },
-            { name: "Reaction Test", Class: ReactionGame, icon: "⚡", color: "#ffff00", desc: "Fast Reflexes Speed Test" },
+            { name: "Neon Spinner", Class: ReactionGame, icon: "⚡", color: "#ffff00", desc: "Lock needle inside green zone" },
             { name: "Math Speed", Class: MathSpeedGame, icon: "🧮", color: "#9c27b0", desc: "True / False Math Battle" },
             { name: "Tap Speed", Class: TapSpeedGame, icon: "👆", color: "#fe2c55", desc: "Button Clicking Countdown" },
             { name: "Color Flood", Class: ColorFloodGame, icon: "🎨", color: "#25f4ee", desc: "Grid Flood Fill Puzzle" },
@@ -98,7 +100,7 @@ class App {
             { name: "Fruit Catch", Class: CatchFruitGame, icon: "🍎", color: "#9c27b0", desc: "Move Basket Catch Fruits" },
             { name: "Perfect Slice", Class: PerfectSliceGame, icon: "🔪", color: "#fe2c55", desc: "Chop Moving logs precisely" },
             { name: "Quick Count", Class: CountDotsGame, icon: "🔢", color: "#25f4ee", desc: "Flash Dots Count Challenge" },
-            { name: "Avoid Bombs", Class: AvoidBombsGame, icon: "💣", color: "#ffff00", desc: "Unlock Gold avoid explosive" },
+            { name: "Minesweeper", Class: AvoidBombsGame, icon: "💣", color: "#ffff00", desc: "Reveal 13 safe cells, avoid mines" },
             { name: "Target Burst", Class: TargetShooterGame, icon: "🎯", color: "#9c27b0", desc: "Tap shrinking neon bubbles" },
             { name: "Color Match", Class: ColorMatchGame, icon: "🌈", color: "#fe2c55", desc: "Stroop Word Color Matching" },
             { name: "Connect Pipes", Class: ConnectPipesGame, icon: "🚰", color: "#25f4ee", desc: "Rotate tubes fluid routing" },
@@ -110,7 +112,7 @@ class App {
             { name: "Rhythm Beats", Class: RhythmTapGame, icon: "🎵", color: "#9c27b0", desc: "Tap Falling columns beats" },
             { name: "Shade Hunter", Class: GridFinderGame, icon: "👁", color: "#fe2c55", desc: "Find Odd shade square" },
             { name: "Block Drop", Class: BlockSliderGame, icon: "📦", color: "#25f4ee", desc: "Align block release gaps" },
-            { name: "High Low", Class: HighLowGame, icon: "🎲", color: "#ffff00", desc: "Guess next dice high or low" },
+            { name: "Operator Finder", Class: HighLowGame, icon: "🎲", color: "#ffff00", desc: "Identify missing equation sign" },
             { name: "Brick Pop", Class: BallBricksGame, icon: "🧱", color: "#9c27b0", desc: "Paddle ball block breaker" },
             { name: "Tap in Order", Class: SequenceOrderGame, icon: "🔟", color: "#fe2c55", desc: "Tap numbers 1 to 5 order" },
             { name: "Grid Escape", Class: MazeEscapeGame, icon: "🚪", color: "#25f4ee", desc: "Maze escape arrow navigation" },
@@ -190,6 +192,8 @@ class App {
         const btnBackFromGame = doc.getElementById("btnBackFromGame");
         const btnSubmitName = doc.getElementById("btnSubmitName");
         const nameInput = doc.getElementById("usernameInput");
+        const btnOverlayLobby = doc.getElementById("btnOverlayLobby");
+        const tempOverlay = doc.getElementById("gameOverOverlay");
 
         const showView = (targetView) => {
             [lobbyView, gameView, leaderboardView].forEach(v => v.classList.add("hidden"));
@@ -211,6 +215,12 @@ class App {
             showView(lobbyView);
         });
 
+        btnOverlayLobby.addEventListener('click', () => {
+            tempOverlay.classList.add("hidden");
+            this.#engine.stop();
+            showView(lobbyView);
+        });
+
         btnSubmitName.addEventListener('click', () => {
             const inputVal = nameInput.value.trim();
             if (inputVal !== "") {
@@ -228,6 +238,10 @@ class App {
         const doc = document;
         const gameView = doc.getElementById("gameView");
         const lobbyView = doc.getElementById("lobbyView");
+
+        // Reset Arcade run total scores and counts
+        this.#arcadeTotalScore = 0;
+        this.#gamesPlayedCount = 0;
 
         // Show Game View panel
         lobbyView.classList.add("hidden");
@@ -272,15 +286,16 @@ class App {
         // Update DOM texts
         document.getElementById("activeGameTitle").innerText = metadata.name;
 
-        // Find active index
+        // Track active index based on how many games played
+        document.getElementById("activeGameIndex").innerText = `${this.#gamesPlayedCount + 1}/30`;
+
+        // Find active index in game list for pagination group
         let index = 0;
         let current = this.#gameList.head;
         while (current.value.name !== metadata.name) {
             current = current.next;
             index++;
         }
-
-        document.getElementById("activeGameIndex").innerText = `${index + 1}/30`;
 
         // Update active dot indicators
         const dots = document.querySelectorAll(".pagination-dot");
@@ -300,29 +315,71 @@ class App {
     /**
      * Handle Game Over overlay triggers and auto-scrolling loops.
      */
-    #handleGameOver(finalScore) {
+    #handleGameOver(gameScore) {
         this.#engine.stop();
+
+        this.#arcadeTotalScore += gameScore;
+        this.#gamesPlayedCount++;
 
         const doc = document;
         const tempOverlay = doc.getElementById("gameOverOverlay");
         const tempScore = doc.getElementById("tempScoreDisplay");
         const tempTitle = doc.getElementById("tempGameTitle");
-
-        // Asynchronously save score to local & database collections
-        this.#saveScore(this.#currentUsername, finalScore);
+        const overlayGlow = doc.getElementById("overlayGlow");
+        const overlayStatus = doc.getElementById("overlayStatus");
+        const overlayScoreLabel = doc.getElementById("overlayScoreLabel");
+        const overlayNextHint = doc.getElementById("overlayNextHint");
+        const btnOverlayLobby = doc.getElementById("btnOverlayLobby");
 
         // Display results inside temporary hud
         tempTitle.innerText = this.#activeGameName;
-        tempScore.innerText = finalScore;
 
-        // Show temp overlay
-        tempOverlay.classList.remove("hidden");
+        if (this.#gamesPlayedCount < 30) {
+            // Intermediate game over
+            tempScore.innerText = `+${gameScore}`;
+            overlayScoreLabel.innerText = "GAME SCORE";
+            btnOverlayLobby.classList.add("hidden");
+            overlayNextHint.classList.remove("hidden");
+            overlayNextHint.innerText = "NEXT GAME IN 1.5s...";
 
-        // Auto-swipe vertical scroll to the next game in 1.5 seconds
-        setTimeout(() => {
-            tempOverlay.classList.add("hidden");
-            this.#engine.triggerSwipeNext();
-        }, 1500);
+            if (gameScore > 0) {
+                overlayStatus.innerText = "CHALLENGE PASSED";
+                overlayStatus.style.color = "var(--primary-cyan)";
+                overlayStatus.style.textShadow = "0 0 15px rgba(37, 244, 238, 0.6)";
+                overlayGlow.style.background = "var(--primary-cyan)";
+            } else {
+                overlayStatus.innerText = "CHALLENGE FAILED";
+                overlayStatus.style.color = "var(--primary-pink)";
+                overlayStatus.style.textShadow = "0 0 15px rgba(254, 44, 85, 0.6)";
+                overlayGlow.style.background = "var(--primary-pink)";
+            }
+
+            // Show temp overlay
+            tempOverlay.classList.remove("hidden");
+
+            // Auto-swipe vertical scroll to the next game in 1.5 seconds
+            setTimeout(() => {
+                tempOverlay.classList.add("hidden");
+                this.#engine.triggerSwipeNext();
+            }, 1500);
+        } else {
+            // 30th game complete! Arcade run complete
+            tempScore.innerText = `${this.#arcadeTotalScore}`;
+            overlayScoreLabel.innerText = "TOTAL ARCADE SCORE";
+            overlayNextHint.classList.add("hidden");
+            btnOverlayLobby.classList.remove("hidden");
+
+            overlayStatus.innerText = "ARCADE RUN COMPLETE!";
+            overlayStatus.style.color = "var(--primary-yellow)";
+            overlayStatus.style.textShadow = "0 0 15px rgba(255, 255, 0, 0.6)";
+            overlayGlow.style.background = "var(--primary-yellow)";
+
+            // Asynchronously save total score to local & database collections
+            this.#saveScore(this.#currentUsername, this.#arcadeTotalScore);
+
+            // Show temp overlay
+            tempOverlay.classList.remove("hidden");
+        }
     }
 
     /**
