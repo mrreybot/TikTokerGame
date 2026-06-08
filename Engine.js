@@ -103,6 +103,22 @@ export class GameEngine {
         this.#slideDirection = 1; // 1 = slide to next
         this.#startSwipeYOffset = 0; // slide starts from center
         this.#slideTimeElapsed = 0;
+
+        // Reboot the render loop if it was stopped on Game Over
+        if (!this.#isRunning) {
+            this.#isRunning = true;
+            this.#lastTime = performance.now();
+            const loop = (timestamp) => {
+                if (!this.#isRunning) return;
+                let dt = (timestamp - this.#lastTime) / 1000;
+                if (dt > 0.1) dt = 0.1;
+                this.#lastTime = timestamp;
+                this.#update(dt);
+                this.#render();
+                this.#animationFrameId = requestAnimationFrame(loop);
+            };
+            this.#animationFrameId = requestAnimationFrame(loop);
+        }
     }
 
     /**
