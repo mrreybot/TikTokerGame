@@ -199,10 +199,7 @@ class App {
                 setTimeout(() => { btnSubmitName.innerText = "SAVE"; }, 1500);
             }
         });
-
-    /**
-     * Handle Game Over modal and list updates.
-     */
+    }
     /**
      * Start running the continuous arcade swiping system.
      */
