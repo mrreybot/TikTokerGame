@@ -11,6 +11,19 @@
  * - PL Elective Concept 1: Event-driven design (Orchestrating DOM view toggles).
  */
 
+import { GameEngine } from './Engine.js';
+import { LinkedList, CircularDoublyLinkedList } from './DataStructures.js';
+import { BalanceGame } from './games/BalanceGame.js';
+import { FallGame } from './games/FallGame.js';
+import { SortGame } from './games/SortGame.js';
+import {
+    SudokuGame, MemoryGame, ReactionGame, MathSpeedGame, TapSpeedGame,
+    ColorFloodGame, PatternCopyGame, CatchFruitGame, PerfectSliceGame, CountDotsGame,
+    AvoidBombsGame, TargetShooterGame, ColorMatchGame, ConnectPipesGame, JumpObstaclesGame,
+    TicTacToeGame, WordScrambleGame, KnifeThrowGame, WhackAMoleGame, RhythmTapGame,
+    GridFinderGame, BlockSliderGame, HighLowGame, BallBricksGame, SequenceOrderGame,
+    MazeEscapeGame, FlappyBallGame
+} from './games/NewMiniGames.js';
 import { firebaseConfig, isFirebaseConfigured } from './FirebaseConfig.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
