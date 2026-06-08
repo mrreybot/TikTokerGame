@@ -41,36 +41,8 @@
             </article>
 
             <!-- Grid of Mini Games Selection -->
-            <nav class="games-grid" aria-label="Game navigation list">
-                <button id="cardBalance" class="game-card card-pink" type="button">
-                    <div class="card-glow"></div>
-                    <div class="card-icon">🥞</div>
-                    <div class="card-details">
-                        <h2>Balance Stack</h2>
-                        <p>Gravity Physics Challenge</p>
-                    </div>
-                    <span class="card-action">PLAY</span>
-                </button>
-
-                <button id="cardFall" class="game-card card-cyan" type="button">
-                    <div class="card-glow"></div>
-                    <div class="card-icon">⚽</div>
-                    <div class="card-details">
-                        <h2>Stop the Ball</h2>
-                        <p>High-Speed Timing Test</p>
-                    </div>
-                    <span class="card-action">PLAY</span>
-                </button>
-
-                <button id="cardSort" class="game-card card-yellow" type="button">
-                    <div class="card-glow"></div>
-                    <div class="card-icon">🧪</div>
-                    <div class="card-details">
-                        <h2>Water Sort</h2>
-                        <p>Logic Stack Sorting Puzzle</p>
-                    </div>
-                    <span class="card-action">PLAY</span>
-                </button>
+            <nav class="games-grid" aria-label="Game navigation list" id="lobbyGamesGrid">
+                <!-- Filled dynamically via App.js from CircularDoublyLinkedList -->
             </nav>
 
             <!-- Lobby Navigation Actions -->
@@ -84,8 +56,22 @@
         <section id="gameView" class="view-panel hidden">
             <header class="game-header">
                 <button id="btnBackFromGame" class="btn-back" type="button" aria-label="Go back to lobby">◀ LOBBY</button>
+                <div class="active-game-meta">
+                    <span id="activeGameTitle">TikTok Balance</span>
+                    <span id="activeGameIndex" class="game-index-badge">1/30</span>
+                </div>
                 <div class="live-tag">LIVE</div>
             </header>
+
+            <!-- Floating Pagination indicators (on the right) -->
+            <div id="swipePaginationDots" class="pagination-dots-container"></div>
+
+            <!-- Swipe helper tip at bottom of screen -->
+            <div class="swipe-hint-container">
+                <span class="swipe-arrow animate-bounce-up">▲</span>
+                <span class="swipe-text">SWIPE UP / DOWN</span>
+                <span class="swipe-arrow animate-bounce-down">▼</span>
+            </div>
 
             <div class="canvas-container">
                 <!-- HTML5 Canvas governed by GameEngine -->

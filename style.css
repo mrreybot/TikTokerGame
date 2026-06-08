@@ -688,3 +688,115 @@ body {
         transform: translateY(0) scale(1);
     }
 }
+
+/* ==========================================
+   Continuous Swipe HUD & Pagination Indicators
+   ========================================== */
+.active-game-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    pointer-events: none;
+}
+
+#activeGameTitle {
+    font-size: 13px;
+    font-weight: 900;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.game-index-badge {
+    font-size: 9px;
+    font-weight: 900;
+    color: var(--primary-cyan);
+    background: rgba(37, 244, 238, 0.1);
+    padding: 2px 7px;
+    border-radius: 6px;
+    border: 1px solid rgba(37, 244, 238, 0.25);
+    letter-spacing: 0.5px;
+}
+
+.pagination-dots-container {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 80;
+    pointer-events: none;
+}
+
+.pagination-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.pagination-dot.active {
+    background: var(--primary-cyan);
+    box-shadow: 0 0 10px var(--primary-cyan);
+    transform: scale(1.5);
+}
+
+/* Floating Vertical Swipe Instruction Hint */
+.swipe-hint-container {
+    position: absolute;
+    bottom: 35px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    z-index: 80;
+    pointer-events: none;
+    opacity: 0.45;
+    animation: pulseOpacity 2s infinite alternate;
+}
+
+.swipe-text {
+    font-size: 9px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+}
+
+.swipe-arrow {
+    font-size: 10px;
+    color: var(--primary-cyan);
+    text-shadow: 0 0 5px var(--primary-cyan);
+}
+
+.animate-bounce-up {
+    animation: bounceUp 1.2s infinite;
+}
+
+.animate-bounce-down {
+    animation: bounceDown 1.2s infinite;
+}
+
+@keyframes pulseOpacity {
+    from { opacity: 0.3; }
+    to { opacity: 0.65; }
+}
+
+@keyframes bounceUp {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes bounceDown {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+}
+

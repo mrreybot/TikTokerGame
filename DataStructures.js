@@ -259,3 +259,92 @@ export class LinkedList {
         this.#size = 0;
     }
 }
+
+/**
+ * Class representing a Node in the Circular Doubly Linked List.
+ * Showcase: PL Concept 3 (Heap Allocation via dynamic node instantiations),
+ * PL Concept 4 (User-defined Type), and PL Concept 6 (Dynamic Pointer reference).
+ */
+export class CircularDoublyLinkedListNode {
+    constructor(value) {
+        this.value = value;
+        this.next = null;
+        this.prev = null;
+    }
+}
+
+/**
+ * Class representing a Circular Doubly Linked List.
+ * Showcase: PL Concept 6 (Dynamic Data Structure),
+ * PL Concept 5 (Encapsulation via private fields),
+ * and PL Concept 10 (Boundary/Exception handling).
+ */
+export class CircularDoublyLinkedList {
+    #head = null;
+    #tail = null;
+    #size = 0;
+
+    /**
+     * Insert a new node at the end of the circular doubly linked list.
+     * Showcase: Dynamic pointer updates forming a loop.
+     */
+    insert(value) {
+        if (value === null || value === undefined) {
+            throw new Error("Cannot insert empty values into Circular Doubly Linked List.");
+        }
+
+        const newNode = new CircularDoublyLinkedListNode(value);
+
+        if (this.#head === null) {
+            this.#head = newNode;
+            this.#tail = newNode;
+            newNode.next = newNode;
+            newNode.prev = newNode;
+        } else {
+            newNode.prev = this.#tail;
+            newNode.next = this.#head;
+            this.#tail.next = newNode;
+            this.#head.prev = newNode;
+            this.#tail = newNode;
+        }
+        this.#size++;
+    }
+
+    /**
+     * Get the head node.
+     */
+    get head() {
+        return this.#head;
+    }
+
+    /**
+     * Get the tail node.
+     */
+    get tail() {
+        return this.#tail;
+    }
+
+    /**
+     * Get total nodes.
+     */
+    get size() {
+        return this.#size;
+    }
+
+    /**
+     * Convert Circular List to standard array representation.
+     */
+    toArray() {
+        const result = [];
+        if (this.#head === null) return result;
+
+        let current = this.#head;
+        do {
+            result.push(current.value);
+            current = current.next;
+        } while (current !== this.#head);
+
+        return result;
+    }
+}
+

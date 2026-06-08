@@ -18,6 +18,22 @@ export class GameEngine {
     #activeGame = null;
     #isRunning = false;
 
+    // Swipe & Transition States
+    #activeNode = null;
+    #onGameOverCallback = null;
+    #onActiveGameChangedCallback = null;
+
+    #swipeStartY = 0;
+    #swipeStartX = 0;
+    #swipeYOffset = 0;
+    #isSwiping = false;
+    #isSlidingTransition = false;
+    #slideProgress = 0;
+    #slideDirection = 0; // 1 = next, -1 = prev, 0 = snap back
+    #slideDuration = 0.25; // seconds
+    #slideTimeElapsed = 0;
+    #startSwipeYOffset = 0;
+
     // Custom Gravity Physics Accumulator (Theme & Physics requirement)
     // gravity: constant downward acceleration (pixels / second^2)
     #gravity = 1500; 
@@ -69,10 +85,41 @@ export class GameEngine {
     }
 
     /**
-     * Set up input delegation for clicks and touch events.
-     * Translate client (X, Y) to canvas-relative coordinates (0 to 400, 0 to 800).
+     * Set up arcade swiping config.
+     */
+    setupArcade(activeNode, onGameOverCallback, onActiveGameChangedCallback) {
+        this.#activeNode = activeNode;
+        this.#onGameOverCallback = onGameOverCallback;
+        this.#onActiveGameChangedCallback = onActiveGameChangedCallback;
+        this.loadGameFromActiveNode();
+    }
+
+    /**
+     * Load and run the game class described by the active list node.
+     */
+    loadGameFromActiveNode() {
+        if (!this.#activeNode) return;
+        const metadata = this.#activeNode.value;
+        const GameClass = metadata.Class;
+
+        // Instantiate the game polymorphic class dynamically in the heap
+        const gameInstance = new GameClass(this, (score) => {
+            this.#onGameOverCallback(score);
+        });
+
+        this.runGame(gameInstance);
+
+        if (this.#onActiveGameChangedCallback) {
+            this.#onActiveGameChangedCallback(metadata);
+        }
+    }
+
+    /**
+     * Set up input delegation for clicks, touch events, and vertical swipe gestures.
      */
     #setupInputListeners() {
+        let isMouseDown = false;
+
         const handleInputEvent = (clientX, clientY, e) => {
             if (!this.#activeGame || !this.#isRunning) return;
 
@@ -88,19 +135,102 @@ export class GameEngine {
             this.#activeGame.handleInput(x, y, e);
         };
 
-        // Event-driven design (PL Concept 8)
+        const onStart = (clientX, clientY) => {
+            if (!this.#activeGame || !this.#isRunning || this.#isSlidingTransition) return;
+            isMouseDown = true;
+            this.#swipeStartY = clientY;
+            this.#swipeStartX = clientX;
+            this.#isSwiping = false;
+            this.#swipeYOffset = 0;
+        };
+
+        const onMove = (clientX, clientY, e) => {
+            if (!isMouseDown) return;
+            const dy = clientY - this.#swipeStartY;
+            const dx = clientX - this.#swipeStartX;
+
+            // Start swipe vertical gesture if vertical drag > 15px and is predominantly vertical
+            if (!this.#isSwiping && Math.abs(dy) > 15 && Math.abs(dy) > Math.abs(dx)) {
+                this.#isSwiping = true;
+            }
+
+            if (this.#isSwiping) {
+                this.#swipeYOffset = dy;
+            }
+        };
+
+        const onEnd = (clientX, clientY, e) => {
+            if (!isMouseDown) return;
+            isMouseDown = false;
+
+            if (this.#isSwiping) {
+                const threshold = 100; // swipe displacement threshold (pixels)
+                if (this.#swipeYOffset < -threshold && this.#activeNode) {
+                    // Swipe UP -> Slide in NEXT game from bottom
+                    this.#isSlidingTransition = true;
+                    this.#slideDirection = 1;
+                    this.#startSwipeYOffset = this.#swipeYOffset;
+                    const progress = Math.abs(this.#swipeYOffset) / 800;
+                    this.#slideTimeElapsed = progress * this.#slideDuration;
+                } else if (this.#swipeYOffset > threshold && this.#activeNode) {
+                    // Swipe DOWN -> Slide in PREV game from top
+                    this.#isSlidingTransition = true;
+                    this.#slideDirection = -1;
+                    this.#startSwipeYOffset = this.#swipeYOffset;
+                    const progress = Math.abs(this.#swipeYOffset) / 800;
+                    this.#slideTimeElapsed = progress * this.#slideDuration;
+                } else {
+                    // Snap back
+                    this.#isSlidingTransition = true;
+                    this.#slideDirection = 0;
+                    this.#startSwipeYOffset = this.#swipeYOffset;
+                    const progress = Math.abs(this.#swipeYOffset) / 800;
+                    this.#slideTimeElapsed = (1 - progress) * this.#slideDuration;
+                }
+                this.#isSwiping = false;
+            } else {
+                handleInputEvent(clientX, clientY, e);
+            }
+        };
+
+        // Mouse listeners (globally on window for drag out support)
         this.#canvas.addEventListener('mousedown', (e) => {
             e.preventDefault();
-            handleInputEvent(e.clientX, e.clientY, e);
+            onStart(e.clientX, e.clientY);
         });
 
+        window.addEventListener('mousemove', (e) => {
+            onMove(e.clientX, e.clientY, e);
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            onEnd(e.clientX, e.clientY, e);
+        });
+
+        // Touch listeners (directly on canvas)
         this.#canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length > 0) {
-                e.preventDefault(); // Stop double trigger on mobile
+                e.preventDefault();
                 const touch = e.touches[0];
-                handleInputEvent(touch.clientX, touch.clientY, e);
+                onStart(touch.clientX, touch.clientY);
             }
         }, { passive: false });
+
+        this.#canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                onMove(touch.clientX, touch.clientY, e);
+            }
+        }, { passive: false });
+
+        this.#canvas.addEventListener('touchend', (e) => {
+            if (e.changedTouches.length > 0) {
+                e.preventDefault();
+                const touch = e.changedTouches[0];
+                onEnd(touch.clientX, touch.clientY, e);
+            }
+        });
     }
 
     /**
@@ -179,7 +309,35 @@ export class GameEngine {
      * Internal update dispatcher.
      */
     #update(dt) {
-        if (this.#activeGame) {
+        if (this.#isSlidingTransition) {
+            this.#slideTimeElapsed += dt;
+            const t = Math.min(1, this.#slideTimeElapsed / this.#slideDuration);
+            const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+            const easeVal = easeOutCubic(t);
+
+            if (this.#slideDirection === 1) {
+                // Slide to next (target: -800)
+                this.#swipeYOffset = this.#startSwipeYOffset + (-800 - this.#startSwipeYOffset) * easeVal;
+            } else if (this.#slideDirection === -1) {
+                // Slide to prev (target: 800)
+                this.#swipeYOffset = this.#startSwipeYOffset + (800 - this.#startSwipeYOffset) * easeVal;
+            } else {
+                // Snap back (target: 0)
+                this.#swipeYOffset = this.#startSwipeYOffset * (1 - easeVal);
+            }
+
+            if (t >= 1) {
+                this.#isSlidingTransition = false;
+                if (this.#slideDirection === 1 && this.#activeNode) {
+                    this.#activeNode = this.#activeNode.next;
+                    this.loadGameFromActiveNode();
+                } else if (this.#slideDirection === -1 && this.#activeNode) {
+                    this.#activeNode = this.#activeNode.prev;
+                    this.loadGameFromActiveNode();
+                }
+                this.#swipeYOffset = 0;
+            }
+        } else if (this.#activeGame && !this.#isSwiping) {
             this.#activeGame.update(dt);
         }
     }
@@ -191,10 +349,114 @@ export class GameEngine {
         // Clear canvas
         this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
 
-        // Draw active game
-        if (this.#activeGame) {
+        if (this.#isSwiping || this.#isSlidingTransition) {
+            // Draw current active game translated
+            this.#ctx.save();
+            this.#ctx.translate(0, this.#swipeYOffset);
+            if (this.#activeGame) {
+                this.#activeGame.render(this.#ctx);
+            }
+            this.#ctx.restore();
+
+            // Render sliding adjacent card previews
+            if (this.#activeNode) {
+                if (this.#swipeYOffset < 0) {
+                    // Dragging UP -> Next game slides in from bottom
+                    const nextVal = this.#activeNode.next.value;
+                    this.drawPreviewCard(this.#ctx, nextVal.name, nextVal.icon, nextVal.color, this.#swipeYOffset + 800);
+                } else if (this.#swipeYOffset > 0) {
+                    // Dragging DOWN -> Previous game slides in from top
+                    const prevVal = this.#activeNode.prev.value;
+                    this.drawPreviewCard(this.#ctx, prevVal.name, prevVal.icon, prevVal.color, this.#swipeYOffset - 800);
+                }
+            }
+        } else if (this.#activeGame) {
             this.#activeGame.render(this.#ctx);
         }
+    }
+
+    /**
+     * Draw a premium neon card preview for upcoming circular game nodes.
+     */
+    drawPreviewCard(ctx, name, icon, color, yOffset) {
+        ctx.save();
+        ctx.translate(0, yOffset);
+
+        // Dark background matching main viewport
+        ctx.fillStyle = '#09090b';
+        ctx.fillRect(0, 0, 400, 800);
+
+        // Subtle background grid
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 400; i += 40) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 800); ctx.stroke();
+        }
+        for (let j = 0; j < 800; j += 40) {
+            ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(400, j); ctx.stroke();
+        }
+
+        // Draw Card border
+        const pad = 24;
+        const rx = pad;
+        const ry = pad;
+        const rw = 400 - pad * 2;
+        const rh = 800 - pad * 2;
+        const radius = 24;
+
+        ctx.beginPath();
+        ctx.moveTo(rx + radius, ry);
+        ctx.lineTo(rx + rw - radius, ry);
+        ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + radius);
+        ctx.lineTo(rx + rw, ry + rh - radius);
+        ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - radius, ry + rh);
+        ctx.lineTo(rx + radius, ry + rh);
+        ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - radius);
+        ctx.lineTo(rx, ry + radius);
+        ctx.quadraticCurveTo(rx, ry, rx + radius, ry);
+        ctx.closePath();
+
+        ctx.fillStyle = '#121218';
+        ctx.fill();
+
+        ctx.shadowColor = color || '#fe2c55';
+        ctx.shadowBlur = 25;
+        ctx.strokeStyle = color || '#fe2c55';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Icon Render
+        ctx.shadowColor = color || '#fe2c55';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '80px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(icon || '🎮', 200, 320);
+
+        // Title text
+        ctx.font = '900 28px Outfit, sans-serif';
+        ctx.fillText(name.toUpperCase(), 200, 420);
+
+        // Helper instruction text
+        ctx.shadowBlur = 0;
+        ctx.font = '800 11px Outfit, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillText("NEXT CHALLENGE", 200, 210);
+
+        ctx.font = '800 13px Outfit, sans-serif';
+        ctx.fillStyle = color || '#fe2c55';
+        ctx.fillText("RELEASE TO LOAD", 200, 475);
+
+        // Visual paging dots
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.arc(180 + i * 20, 700, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.restore();
     }
 
     // Getters and Setters (PL Concept 5)
@@ -204,4 +466,8 @@ export class GameEngine {
     set gravity(value) {
         if (typeof value === 'number') this.#gravity = value;
     }
+    get activeNode() { return this.#activeNode; }
+    set activeNode(val) { this.#activeNode = val; }
+    get activeGame() { return this.#activeGame; }
 }
+
