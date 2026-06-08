@@ -27,7 +27,7 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-body {
+html, body {
     background-color: var(--bg-dark);
     font-family: var(--font-stack);
     color: var(--text-white);
@@ -38,6 +38,10 @@ body {
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
+    touch-action: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
 }
 
 /* Helper hidden class */
@@ -428,6 +432,7 @@ body {
 #gameCanvas {
     background-color: #0d0d12;
     display: block;
+    touch-action: none;
 }
 
 /* ==========================================
