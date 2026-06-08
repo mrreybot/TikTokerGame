@@ -21,7 +21,7 @@ import {
     ColorFloodGame, PatternCopyGame, CatchFruitGame, PerfectSliceGame, CountDotsGame,
     AvoidBombsGame, TargetShooterGame, ColorMatchGame, ConnectPipesGame, JumpObstaclesGame,
     TicTacToeGame, WordScrambleGame, KnifeThrowGame, WhackAMoleGame, RhythmTapGame,
-    GridFinderGame, BlockSliderGame, HighLowGame, BallBricksGame, SequenceOrderGame,
+    GridFinderGame, BlockSliderGame, OperatorFinderGame, BallBricksGame, SequenceOrderGame,
     MazeEscapeGame, FlappyBallGame
 } from './games/NewMiniGames.js';
 import { firebaseConfig, isFirebaseConfigured } from './FirebaseConfig.js';
@@ -112,7 +112,7 @@ class App {
             { name: "Rhythm Beats", Class: RhythmTapGame, icon: "🎵", color: "#9c27b0", desc: "Tap Falling columns beats" },
             { name: "Shade Hunter", Class: GridFinderGame, icon: "👁", color: "#fe2c55", desc: "Find Odd shade square" },
             { name: "Block Drop", Class: BlockSliderGame, icon: "📦", color: "#25f4ee", desc: "Align block release gaps" },
-            { name: "Operator Finder", Class: HighLowGame, icon: "🎲", color: "#ffff00", desc: "Identify missing equation sign" },
+            { name: "Operator Finder", Class: OperatorFinderGame, icon: "🎲", color: "#ffff00", desc: "Identify missing equation sign" },
             { name: "Brick Pop", Class: BallBricksGame, icon: "🧱", color: "#9c27b0", desc: "Paddle ball block breaker" },
             { name: "Tap in Order", Class: SequenceOrderGame, icon: "🔟", color: "#fe2c55", desc: "Tap numbers 1 to 5 order" },
             { name: "Grid Escape", Class: MazeEscapeGame, icon: "🚪", color: "#25f4ee", desc: "Maze escape arrow navigation" },
